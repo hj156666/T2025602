@@ -80,7 +80,16 @@ kunde.Benutzername = "pk"
 kunde.Kennwort = "123"
 kunde.IstEingeloggt = false
 
-// Klassenefinition des Kundenberaters
+// Beispielhafte Ergänzung des Kundenobjekts (an geeigneter Stelle, z.B. beim Start der App)
+kunde = {
+    Name: "Max Mustermann",
+    Mail: "max@mustermann.de",
+    Telefonnummer: "0123456789", // <-- Neue Eigenschaft Telefonnummer
+    IstEingeloggt: false
+    // ...weitere Eigenschaften...
+};
+
+// Kundenberater-Klassendefinition
 class Kundenberater{
 	constructor(){
 		this.Nachname
@@ -292,61 +301,46 @@ app.get('/kontenuebersicht', (req, res) => {
 });
 
 app.get('/profil', (req, res) => {
-	
-	if(kunde.IstEingeloggt){
-
-		// Wenn die Zugangsdaten korrekt sind, dann wird die angesurfte Seite gerendert.
-		res.render('profil.ejs',{
-			Meldung: "",
-			Email: kunde.Mail
-		});
-
-	}else{
-		
-		// Wenn die Zugangsdaten nicht korrekt sind, dann wird die login-Seite gerendert.
-		res.render('login.ejs',{
-			Meldung: "Melden Sie sich zuerst an."
-		});
-	}
+    if (kunde.IstEingeloggt) {
+        // Alle Eigenschaften des Kundenobjekts werden an die View übergeben.
+        res.render('profil.ejs', {
+            Meldung: "",
+            Kunde: kunde
+        });
+    } else {
+        res.render('login.ejs', {
+            Meldung: "Melden Sie sich zuerst an."
+        });
+    }
 });
 
 app.post('/profil', (req, res) => {
-	
-	var meldung = "";
-
-	if(kunde.IstEingeloggt){
-
-		// Der Wert von Email wird vom Browser entgegengenommen, sobald der Kunde
-		// sein Profil ändern will.
-
-		let email = req.body.Email;
-		
-		// Die übergebene Adresse wird in die Validate-Funktion übergeben und geprüft
-
-		if(validator.validate(email)){
-
-			console.log("Gültige EMail.")
-			meldung = "EMail-adresse gültig";
-			kunde.Mail = email;
-
-		}else{
-			console.log("Ungültige EMail.")
-			meldung = "EMail-adresse ungültig";
-		}
-		
-		// Die profil-Seite wird gerendert.
-		res.render('profil.ejs',{
-			Meldung: meldung,
-			Email: ""
-		});
-
-	}else{
-		
-		// Wenn die Zugangsdaten nicht korrekt sind, dann wird die login-Seite gerendert.
-		res.render('login.ejs',{
-			Meldung: "Melden Sie sich zuerst an."
-		});
-	}
+    var meldung = "";
+    if (kunde.IstEingeloggt) {
+        let email = req.body.Email;
+        let telefon = req.body.Telefonnummer;
+        // Prüfen, ob die neue E-Mail-Adresse gültig ist
+        if (validator.validate(email)) {
+            kunde.Mail = email;
+            meldung = "E-Mail-Adresse erfolgreich geändert.";
+        } else {
+            meldung = "Ungültige E-Mail-Adresse.";
+        }
+        // Telefonnummer übernehmen (einfache Übernahme, ggf. Validierung ergänzen)
+        if (telefon && telefon.trim() !== "") {
+            kunde.Telefonnummer = telefon;
+            meldung += " Telefonnummer erfolgreich geändert.";
+        }
+        // Nach Änderung alle Eigenschaften erneut anzeigen
+        res.render('profil.ejs', {
+            Meldung: meldung,
+            Kunde: kunde
+        });
+    } else {
+        res.render('login.ejs', {
+            Meldung: "Melden Sie sich zuerst an."
+        });
+    }
 });
 
 app.get('/postfach', (req, res) => {
@@ -377,28 +371,34 @@ app.get('/kreditBeantragen', (req, res) => {
 });
 
 
-// Kommentar: 
+// ie Funktion app.post('/kreditBeantragen', (req, res) => { ... }) verarbeitet HTTP-POST-Anfragen, die an die Route /kreditBeantragen gesendet werden. Sie liest die vom Nutzer im Kreditformular eingegebenen Daten aus, berechnet daraus den Rückzahlungsbetrag und rendert anschließend die Seite kreditBeantragen.ejs mit den Ergebnissen und einer passenden Meldung.
 app.post('/kreditBeantragen', (req, res) => {
 
-	// Kommentar:
-	let zinsbetrag = req.body.Betrag;
-	let laufzeit = req.body.Laufzeit;
-	let zinssatz = req.body.Zinssatz;
+    // Die vom Nutzer im Formular eingegebenen Werte für Betrag, Laufzeit und Zinssatz werden aus dem Request-Body ausgelesen.
+    // Diese Werte werden in die lokalen Variablen zinsbetrag, laufzeit und zinssatz gespeichert.
+    let zinsbetrag = req.body.Betrag;
+    let laufzeit = req.body.Laufzeit;
+    let zinssatz = req.body.Zinssatz;
 
-	// Kommentar:
-	let kredit = zinsbetrag * Math.pow(1+zinssatz/100,laufzeit);
-	
-	// Kommentar:
-	console.log("Rückzahlungsbetrag: " + kredit + " €.")
+    // Der Rückzahlungsbetrag für den Kredit wird nach der Formel für Zinseszinsen berechnet.
+    // Das Ergebnis wird in der Variablen kredit gespeichert.
+    let kredit = zinsbetrag * Math.pow(1+zinssatz/100,laufzeit);
 
-	// Kommentar:
-	res.render('kreditBeantragen.ejs',{
-		Laufzeit: laufzeit,
-		Zinssatz: zinssatz,		
-		Betrag: zinsbetrag,
-		// Kommentar:
-		Meldung: "Rückzahlungsbetrag: " + kredit + " €."
-	});
+    // Das Ergebnis wird kaufmännisch auf zwei Nachkommastellen gerundet und als String formatiert.
+    let kreditFormatiert = kredit.toFixed(2);
+
+    // Der berechnete Rückzahlungsbetrag wird zur Kontrolle auf der Konsole ausgegeben.
+    // Dies dient der Überprüfung der Berechnung während der Entwicklung.
+    console.log("Rückzahlungsbetrag: " + kreditFormatiert + " €.")
+
+    // Die Seite "kreditBeantragen.ejs" wird mit den eingegebenen Werten und dem berechneten Rückzahlungsbetrag gerendert.
+    // Die Meldung mit dem Rückzahlungsbetrag wird an die gerenderte Seite übergeben.
+    res.render('kreditBeantragen.ejs',{
+        Laufzeit: laufzeit,
+        Zinssatz: zinssatz,		
+        Betrag: zinsbetrag,
+        Meldung: "Rückzahlungsbetrag: " + kreditFormatiert + " €."
+    });
 });
 
 app.get('/ueberweisungAusfuehren', (req, res) => {

@@ -1,13 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!--Die Styles.css muss aus allen HTML-Dateien verlinkt werden-->
-    <link rel="stylesheet" href="styles.css">
-    <!--Es gibt im Internet Dienste, die Styles zur Verfügung stellen. Beispiel: font awesome-->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <title>Borken-Bank - Profil</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header>
@@ -21,18 +17,23 @@
         <a href="login"><i class="fa fa-sign-out"></i> Abmelden</a>
     </header>
     <main>
-        <h1>Mein Profil</h1>
-
-        Hier sollen alle persönlichen Daten des Kunden stehen.</br>
-
-        <form method="post">            
-            <label>Mail-Adresse</label></br>
-            <input type="text" name="Email" value=<%= Email %>>
-            <button type="submit" formaction="/profil">Mail-Adresse ändern</button>
-        </form>                
+        <h1>Profil</h1>
+        <h2>Kundendaten</h2>
+        <ul>
+            <% for (let key in Kunde) { %>
+                <li><strong><%= key %>:</strong> <%= Kunde[key] %></li>
+            <% } %>
+        </ul>
+        <h2>Kontaktdaten ändern</h2>
+        <form method="post">
+            <label for="Email">Neue E-Mail-Adresse:</label>
+            <input type="email" id="Email" name="Email" value="<%= Kunde.Mail %>"><br>
+            <label for="Telefonnummer">Neue Telefonnummer:</label>
+            <input type="text" id="Telefonnummer" name="Telefonnummer" value="<%= Kunde.Telefonnummer %>"><br>
+            <button type="submit">Daten ändern</button>
+        </form>
         <p><%= Meldung %></p>
     </main>
-
     <footer>
         <p>Borken-Bank AG</p>
         <p>Geschäftsführer: Hans Dampf, IBAN: DE 55 28 000 000</p>
